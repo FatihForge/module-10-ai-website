@@ -1,77 +1,33 @@
 const path = require('path');
 const express = require('express');
-const dotenv = require('dotenv');
-
-dotenv.config();
+const { port } = require('./config/env');
+const aiRoutes = require('./routes/ai.routes');
 
 const app = express();
-const port = process.env.PORT || 3000;
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.post('/api/generate', async (req, res) => {
-  const prompt = typeof req.body.prompt === 'string' ? req.body.prompt.trim() : '';
+app.get('/api/health', (req, res) => {
+  res.json({
+    success: true,
+    message: 'Server is running'
+  });
+});
 
-  if (!prompt) {
-    return res.status(400).json({ error: 'Please write a prompt first.' });
-  }
+app.use('/api', aiRoutes);
 
-  if (!process.env.AI_API_KEY) {
-    return res.status(500).json({
-      error: 'AI API key is missing. Please add it to your .env file.'
+app.use((error, req, res, next) => {
+  if (error instanceof SyntaxError && error.status === 400 && error.type === 'entity.parse.failed') {
+    return res.status(400).json({
+      success: false,
+      error: 'Request body must be valid JSON.'
     });
   }
 
-  try {
-    const response = await fetch(process.env.AI_API_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${process.env.AI_API_KEY}`
-      },
-      body: JSON.stringify({
-        model: process.env.AI_MODEL,
-        messages: [
-          {
-            role: 'system',
-            content: 'You are a helpful assistant. Give clear and useful answers.'
-          },
-          { role: 'user', content: prompt }
-        ],
-        temperature: 0.7
-      })
-    });
-
-    const responseText = await response.text();
-    let data = {};
-
-    try {
-      data = responseText ? JSON.parse(responseText) : {};
-    } catch (parseError) {
-      return res.status(502).json({
-        error: 'The AI service returned an invalid response.'
-      });
-    }
-
-    if (!response.ok) {
-      const apiMessage = data.error?.message || 'The AI service returned an error.';
-      return res.status(response.status).json({ error: apiMessage });
-    }
-
-    const answer = data.choices?.[0]?.message?.content;
-
-    if (!answer) {
-      return res.status(502).json({ error: 'No answer was received from the AI service.' });
-    }
-
-    res.json({ answer });
-  } catch (error) {
-    console.error('AI request failed:', error.message);
-    res.status(500).json({ error: 'Could not connect to the AI service.' });
-  }
+  return next(error);
 });
 
 app.listen(port, () => {
-  console.log(`AI website is running at http://localhost:${port}`);
+  console.log(`Server is running at http://localhost:${port}`);
 });
