@@ -43,7 +43,16 @@ app.post('/api/generate', async (req, res) => {
       })
     });
 
-    const data = await response.json();
+    const responseText = await response.text();
+    let data = {};
+
+    try {
+      data = responseText ? JSON.parse(responseText) : {};
+    } catch (parseError) {
+      return res.status(502).json({
+        error: 'The AI service returned an invalid response.'
+      });
+    }
 
     if (!response.ok) {
       const apiMessage = data.error?.message || 'The AI service returned an error.';

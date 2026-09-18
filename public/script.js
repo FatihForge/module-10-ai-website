@@ -33,7 +33,14 @@ form.addEventListener('submit', async (event) => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ prompt })
     });
-    const data = await response.json();
+    const responseText = await response.text();
+    let data = {};
+
+    try {
+      data = responseText ? JSON.parse(responseText) : {};
+    } catch (parseError) {
+      throw new Error('The server returned an invalid response. Please try again.');
+    }
 
     if (!response.ok) {
       throw new Error(data.error || 'Something went wrong. Please try again.');
