@@ -1,24 +1,19 @@
 {
-  "name": "module-10-ai-website",
+  "name": "module-10-assignment",
   "version": "1.0.0",
-  "description": "A simple AI website built with HTML, CSS, JavaScript, Node.js and Express.js.",
+  "description": "A beginner-friendly Gemini AI website using Node.js and Express.",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "nodemon server.js"
+    "dev": "node --watch server.js"
   },
-  "keywords": [
-    "nodejs",
-    "express",
-    "ai"
-  ],
+  "keywords": [],
   "author": "",
   "license": "ISC",
+  "type": "commonjs",
   "dependencies": {
-    "dotenv": "^16.4.7",
-    "express": "^4.21.2"
-  },
-  "devDependencies": {
-    "nodemon": "^3.1.14"
+    "@google/genai": "latest",
+    "dotenv": "latest",
+    "express": "latest"
   }
 }
